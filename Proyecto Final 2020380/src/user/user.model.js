@@ -28,6 +28,7 @@ const userSchema = Schema({
         uppercase: true,
         enum: ['CLIENT', 'ADMIN'],
         require: [true, "role is required"]
+        
     }
 }, {
     versionKey: false

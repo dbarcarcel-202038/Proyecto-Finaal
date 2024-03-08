@@ -7,12 +7,12 @@ import categoryRoutes from '../src/category/category.routes.js'
 import userRoutes from '../src/user/user.routes.js'
 import productRoutes from '../src/product/product.routes.js'
 import cartRoutes from '../src/cart/cart.routes.js'
-import receiptRoutes from '../src/receipt/receipt.routes.js'
+import receiptRoutes from '../src/bill/bill.routes.js'
 
 
 const app = express()
 config();
-const port = process.env.PORT || 2020
+const port = process.env.PORT || 2656
 
 app.use(express.urlencoded({extended: false}))
 app.use(express.json())

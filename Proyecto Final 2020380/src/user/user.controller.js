@@ -48,26 +48,22 @@ export const signAdmin = async (req, res) => {
 
 export const login = async (req, res) => {
     try {
-        let { user, password } = req.body
-        let users = await User.findOne({
-            $or: [
-                { username: user },
-                { email: user }
-            ]
-        });
-        if (users && await compareThePassword(password, users.password)) {
-            let loggedUser = {
-                uid: users.id,
-                username: users.username,
-                name: users.name,
-                role: users.role
+        let { user, password } = req.body;
+        let users = await User.findOne({ username: user });
+        if (users) {
+            const isPasswordValid = await compareThePassword(password, users.password);
+            if (isPasswordValid) {
+                let loggedUser = {
+                    uid: users.id,
+                    username: users.username,
+                    name: users.name,
+                    role: users.role
+                }
+                let token = await generateJwt(loggedUser)
+                return res.send({ message: `Welcome ${loggedUser.name}`, loggedUser, token })
             }
-            let token = await generateJwt(loggedUser)
-            return res.send({ message: `Welcome ${loggedUser.name}`, loggedUser, token })
-
         }
         return res.status(404).send({ message: 'Invalid credentials' })
-
     } catch (err) {
         console.error(err)
         return res.status(500).send({ message: 'Error logging in' })

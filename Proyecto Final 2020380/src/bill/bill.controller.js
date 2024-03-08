@@ -1,50 +1,49 @@
 import Bill from './bill.model.js'
 import Product from '../product/product.model.js'
-
-export const update = async (req, res) => {
+export const updateReceiptItem = async (req, res) => {
     try {
         const { id, itemId } = req.params;
-        const { product, quantity } = req.body;
+        const { newProductId, newQuantity } = req.body;
 
-        if (!product && !quantity) {
-            return res.status(400).send({ message: 'Product and quantity are required' });
+        if (!newProductId && !newQuantity) {
+            return res.status(400).send({ message: 'New product ID and quantity are required' });
         }
 
-        const bill = await Bill.findById(id);
-        if (!bill) {
-            return res.status(404).send({ message: 'Bill not found' });
+        const receipt = await Bill.findById(id);
+        if (!receipt) {
+            return res.status(404).send({ message: 'Receipt not found' });
         }
 
-        const itemToUpdate = bill.items.find(item => item._id.toString() === itemId);
+        const itemToUpdate = receipt.items.find(item => item._id.toString() === itemId);
         if (!itemToUpdate) {
-            return res.status(404).send({ message: 'Item not found in the bill' });
+            return res.status(404).send({ message: 'Item not found in the receipt' });
         }
 
-        if (product) {
-            itemToUpdate.product = product;
+        if (newProductId) {
+            itemToUpdate.product = newProductId;
 
-            const productInfo = await Product.findById(product);
+            const productInfo = await Product.findById(newProductId);
             if (!productInfo) {
-                return res.status(404).send({ message: 'Product not found' });
+                return res.status(404).send({ message: 'New product not found' });
             }
             const oldUnitPrice = itemToUpdate.unitPrice;
             itemToUpdate.unitPrice = productInfo.price;
 
-            bill.totalAmount += (itemToUpdate.unitPrice - oldUnitPrice) * itemToUpdate.quantity;
+            receipt.totalAmount += (itemToUpdate.unitPrice - oldUnitPrice) * itemToUpdate.quantity;
 
-            if (quantity !== undefined) {
+            if (newQuantity !== undefined) {
                 const oldQuantity = itemToUpdate.quantity;
-                const quantityDifference = quantity - oldQuantity;
+                const quantityDifference = newQuantity - oldQuantity;
                 productInfo.stock -= quantityDifference;
                 await productInfo.save();
             }
         }
-        if (quantity !== undefined) {
+        if (newQuantity !== undefined) {
             const oldQuantity = itemToUpdate.quantity;
-            const quantityDifference = quantity - oldQuantity;
-            itemToUpdate.quantity = quantity;
+            const quantityDifference = newQuantity - oldQuantity;
+            itemToUpdate.quantity = newQuantity;
 
-            bill.totalAmount += quantityDifference * itemToUpdate.unitPrice;
+            receipt.totalAmount += quantityDifference * itemToUpdate.unitPrice;
 
             const productInfo = await Product.findById(itemToUpdate.product);
             if (!productInfo) {
@@ -54,9 +53,9 @@ export const update = async (req, res) => {
             await productInfo.save();
         }
 
-        await bill.save();
+        await receipt.save();
 
-        return res.send({ message: 'Item updated successfully', bill });
+        return res.send({ message: 'Item updated successfully', receipt });
     } catch (error) {
         console.error(error);
         return res.status(500).send({ message: 'Error updating item' });
